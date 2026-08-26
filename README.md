@@ -54,6 +54,22 @@
 
 这个问题比“换相机是否提高成功率”或“更短 chunk 是否更好”更强，因为它要求区分不同失败机制，并且能够被实验反驳。
 
+在老师提出增加同步外部相机后，项目新增一条有明确阶段门槛的多视角主线：
+
+> 增加同步外部视角能否提高 ACT 的毛巾角点捕获精度；如果能，收益来自深度、遮挡互补还是视角偏差抑制；跨视角物质点一致性是否能进一步降低误差，并最终压缩到单外部相机部署？
+
+```text
+1/2/3-view 现象筛查
+        ↓
+深度 / 遮挡 / 视角偏差机制区分
+        ↓
+跨视角材料角点一致性
+        ↓
+多视角教师到单视角学生压缩
+```
+
+多视角、跨视角 loss 和蒸馏不是同时启动的模块。只有前一阶段产生支持性证据，后一阶段才进入主线。
+
 ## 4. 任务分解
 
 ```text
@@ -191,6 +207,11 @@ prediction horizon K × executed steps per query M × temporal aggregation
 - 预先写明反驳条件和停止标准；
 - 如果只在单一相机、单一毛巾和单一任务上有效，结论必须限制在该设置内；
 - 不把简单增加 corner head、缩短 chunk 或更换相机本身表述为算法创新。
+- 同一示教的同步相机画面不能统计成多条独立示教；
+- 多视角比较必须控制示教 episode、视觉 token/参数规模、训练预算和测试布局；
+- 跨视角实验必须区分“额外角点监督”的收益和“一致性 loss”的增量收益；
+- attention 只能作为诊断线索，必须用相机 mask、错帧替换或遮挡干预验证真实依赖；
+- 单视角蒸馏必须按目标角可见性分层，不能把完全不可观测的信息描述成可无损压缩。
 
 ## 10. 仓库文件
 
@@ -198,13 +219,15 @@ prediction horizon K × executed steps per query M × temporal aggregation
 - [`DIAGNOSIS_2026-08-26.md`](./DIAGNOSIS_2026-08-26.md)：初始失败诊断及后续状态更新；
 - [`docs/RESEARCH_QUESTION.md`](./docs/RESEARCH_QUESTION.md)：研究假设、反驳条件和贡献边界；
 - [`docs/EXPERIMENT_PROTOCOL.md`](./docs/EXPERIMENT_PROTOCOL.md)：实验变量、指标和统计协议；
+- [`docs/MULTIVIEW_RESEARCH_PLAN.md`](./docs/MULTIVIEW_RESEARCH_PLAN.md)：多视角现象、机制、跨视角一致性与单视角压缩路线；
 - [`docs/FAILURE_TAXONOMY.md`](./docs/FAILURE_TAXONOMY.md)：失败分类规则；
 - [`results/result_schema.csv`](./results/result_schema.csv)：逐次试验结果字段模板。
 
 ## 11. 当前最近一步
 
-1. 测量夹爪对毛巾角的物理捕获区域；
-2. 使用现有模型测量视觉跟随增益和 late perturbation 响应；
-3. 导出并核对实际网络输入、预测动作、执行动作和时间戳。
+1. 完成三个外部相机的同步、标定和实际网络输入核对；
+2. 用同一批同步示教训练 1/2/3-view ACT，腕部相机保持一致；
+3. 每组先完成至少 20 次配对筛查，自动输出左右闭合误差、双角抓取和完整任务成功率；
+4. 同步测量夹爪捕获区域、视觉跟随增益和 late perturbation，避免把成功率变化错误归因于视角。
 
-完成后再根据证据决定是否重新训练、改变视觉表示或加入局部闭环控制。
+只有多视角上限可靠优于单视角后，才进入跨视角一致性和单视角蒸馏。
