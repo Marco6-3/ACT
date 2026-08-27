@@ -10,9 +10,11 @@
 - `camera_intervention` 记录 mask、错帧替换或局部遮挡；
 - `correspondence_*` 字段只有在运行对应评估时填写，否则留空；
 - 自动标签必须保留 `label_source` 和人工复核状态。
+- `stable_corner_grasp_success` 是当前主要任务标签：抓对双侧指定材料角，抬升 10 cm 并保持 3 s，无滑脱且未明显夹入内侧布料；
+- `fold_success` 和 `full_task_success` 仅用于未来或附加实验，不能替代当前稳定抓角主要终点。
 
 `baseline_corner_approach_test1_020000.md` 冻结了 2026-08-26 训练的只接近
-角点模型及其当前验收门。它是基线登记，不是实机成功结果。
+角点模型。它是已归档的历史 pipeline 诊断，不是实机成功结果，也不再是当前实验门槛。
 
 `artifacts/corner_following_analyzer_smoke` 是自动测量工具在既有遥操作 episode 上的
 离线链路验证，不是 `M=30` policy 结果。`artifacts/` 已被 Git 忽略；正式摘要应在

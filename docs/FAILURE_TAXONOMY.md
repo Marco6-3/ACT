@@ -10,10 +10,10 @@
 | F3 | 双臂协同失败 | 单侧到达，另一侧失败，或双臂耦合导致相互干扰 |
 | F4 | 闭合条件失败 | 闭合过早、过晚、方向错误或未进入捕获区域就闭合 |
 | F5 | 接触与夹持失败 | 已进入捕获区域，但夹空、夹内侧、夹错层或滑脱 |
-| F6 | 抓取验证/恢复失败 | 未识别抓取失败，或 recovery 未成功 |
+| F6 | 抬升保持/恢复失败 | 已形成双角夹持，但抬升 10 cm 或保持 3 s 期间滑脱；或 recovery 未成功 |
 | F7 | 折叠阶段失败 | 双角已稳定夹持，后续拉起、轨迹或布料动力学失败 |
 | F8 | 安全或非任务中断 | 急停、越界、碰撞风险或通信中断；单独报告 |
 
-F2 可增加 `latency`、`no-response`、`oscillation`、`occlusion`、`bias` 标签。
+F2 可增加 `latency`、`no-response`、`oscillation`、`occlusion`、`bias` 标签。F5/F6 可增加 `wrong-corner`、`too-far-inward`、`wrong-layer`、`slip-during-lift` 标签。
 
 每条 trial 至少记录 `primary_failure_code`、`secondary_failure_tags`、依据帧/时间戳、标注者和不确定性。不确定时使用 `uncertain`，不要强行归类。正式数据建议由两名标注者独立标注一部分试验以检查一致性。
