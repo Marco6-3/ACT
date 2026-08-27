@@ -2,25 +2,87 @@
 
 > 状态更新（2026-08-26）：完整任务成功率接近 0，但毛巾左右平移时机械臂会产生一定同方向响应。因此“完全没有利用视觉”已不是唯一主解释。当前最高优先级是量化粗视觉跟随、接触前误差收缩和夹爪物理抓取容差。
 
+> 新模型（2026-08-26）：已使用 40 条只接近角点、不闭合夹爪的示范训练
+> `test1/020000`。checkpoint 已通过离线加载和配置一致性检查，冻结配置见
+> [`results/baseline_corner_approach_test1_020000.md`](./results/baseline_corner_approach_test1_020000.md)。
+> 当前仍需完成至少 20 次执行验收，不能仅凭训练完成将固定场景 sanity check
+> 标记为通过。
+
+> `M=30` 进展（2026-08-26）：已由人工完成定性真机测试，现象为可以接近/跟随角点；
+> 这不是带测量的通过结果。部署端现已加入夹爪保持张开硬保护、D435i 录制契约、
+> query/预测/发布动作追踪和 MCAP 离线自动测量。下一道门是操作员按 7 个已编号布局
+> 启动真机录制；机械臂 TCP 位移将自动以毫米计算，不再要求人工拿尺测量。
+
+> 多相机实验（2026-08-27）：下一批示范改为五路 RGB 同步采集。本地主机
+> `192.168.1.18` 连接两台腕部 RealSense（`332522075913`、`332322073584`）和
+> 外部 Orbbec `CL8384201CG`；NUC `192.168.1.101` 连接两台新外部 RealSense
+>（`405622076349`、`310222078614`）。一次采集生成全部模型
+> 的配对数据，禁止为不同视角分别重采导致示范轨迹不一致。
+
+## P0：五相机方位实验矩阵
+
+固定 canonical topic：
+
+- `external_1`：`/observation/external_camera_1/color/image_raw`（本地 Orbbec）
+- `external_2`：`/observation/external_camera_2/color/image_raw`（NUC RealSense）
+- `external_3`：`/observation/external_camera_3/color/image_raw`（NUC RealSense）
+- `left_wrist`：`/observation/left_hand_realsense/color/image_raw`（本地 RealSense）
+- `right_wrist`：`/observation/right_hand_realsense/color/image_raw`（本地 RealSense）
+
+模型与输入矩阵：
+
+| 实验 | 模型输入 | 训练轨迹 | 主要比较 |
+|---|---|---|---|
+| `E1` | `external_1 + left_wrist + right_wrist` | 同一批五路采集 | 外部方位 1 |
+| `E2` | `external_2 + left_wrist + right_wrist` | 与 E1 完全相同 | 外部方位 2 |
+| `E3` | `external_3 + left_wrist + right_wrist` | 与 E1 完全相同 | 外部方位 3 |
+| `E4` | `external_1 + external_2 + external_3 + left_wrist + right_wrist` | 与 E1 完全相同 | 三外部视角联合增益 |
+
+采集与训练门禁：
+
+- [x] 记录两台主机的相机型号、USB 序列号和网络拓扑
+- [ ] 保存五路首帧拼图，复核左右腕部及三个外部方位标签
+- [ ] 人工确认 `external_1/2/3` 的实际方位标签（如 top/left/right），之后不再换位
+- [x] 两台主机使用相同 `ROS_DOMAIN_ID=1`，CycloneDDS 绑定有线网段
+- [x] `scripts/sync_clock --status delta@192.168.1.101` 达到 `GOOD`（|offset| ≤ 100 us）
+- [x] 五路 RGB 均稳定出帧约 30 Hz，录制首帧门禁要求 5/5 通过
+- [ ] 录制一次短 MCAP 冒烟，确认五路 stream count 增长、`recorder_drops=0`
+- [ ] 所有正式示范同时保存五路 RGB；任何一路缺失或中途停流则整条 episode 作废
+- [ ] 从同一批 MCAP 分别导出 `E1/E2/E3/E4` 数据集，并核对 episode/frame/action 完全配对
+- [ ] 固定相同 train/validation/test 划分、训练步数、随机种子集合和 checkpoint 选择规则
+- [ ] 分别训练 E1、E2、E3；完成后训练 E4
+
+评估矩阵：
+
+- [ ] 毛巾方向覆盖 `0/90/180/270°`，位置覆盖左/中/右与近/中/远
+- [ ] 四个目标角分别测试；首轮固定背景、光照和毛巾实例
+- [ ] 每个模型使用完全相同的测试布局和随机化顺序
+- [ ] 每个条件至少 20 次；记录正确角点、有效接触、闭合夹持、抬升 10 cm 后保持 3 s
+- [ ] 主指标为稳定抬升后的角点抓取成功率，同时报告分方位成功率和 95% 置信区间
+- [ ] E4 同时与最佳单外部视角、三个单视角平均值比较；按遮挡/位置/方向报告增益来源
+
+停止标准：五路时间同步、左右腕部映射、外部方位标签或 MCAP 完整性任一未通过时，
+不得开始训练。若 E1/E2/E3 数据划分或动作标签不完全一致，比较结果无效。
+
 ## P0：冻结基线和记录配置
 
-- [ ] 记录数据集版本、checkpoint、随机种子和 checkpoint 选择规则
-- [ ] 记录图像分辨率、crop 和网络输入分辨率
-- [ ] 记录预测 horizon `K` 和每次 query 后连续执行步数 `M`
+- [x] 记录数据集版本、checkpoint、随机种子和 checkpoint 选择规则
+- [x] 记录图像分辨率、crop 和网络输入分辨率
+- [x] 记录预测 horizon `K` 和每次 query 后连续执行步数 `M`（checkpoint：`K=100`、`M=100`；当前真机候选：运行时覆盖 `M=30`）
 - [ ] 记录 policy query frequency、robot control frequency 和端到端延迟
-- [ ] 记录 temporal ensemble 开关、权重和实现版本
-- [ ] 固定一组可复用的配对初始布局并编号
+- [x] 记录 temporal ensemble 开关、权重和实现版本
+- [x] 固定一组可复用的初筛布局并编号（顺序：`C,L,R,F,B,CCW,CW`；实际初始位置由顶视检测器记录，不要求人工量距离）
 
 完成条件：任一结果都能追溯到唯一数据集、checkpoint、配置和初始布局。
 
 ## P0：检查实际训练与推理输入
 
-- [ ] 从 dataloader 导出至少 20 张真正进入网络的训练图像
+- [x] 从 dataloader 导出至少 20 张真正进入网络的训练图像（`test1/020000` 已导出 20 组、60 张）
 - [ ] 从真实推理导出接近阶段的连续网络输入图像
 - [ ] 检查目标角可见性和 resize 后角点/夹爪的像素尺度
-- [ ] 检查 crop、左右翻转、RGB/BGR、camera key 和 camera index
-- [ ] 检查训练与推理预处理是否一致
-- [ ] 保存图像、观测状态和动作时间戳
+- [x] 检查 crop、左右翻转、RGB/BGR、camera key 和 camera index（训练输入与三路真实 topic 已核对；仍需保存真实连续帧证据）
+- [x] 检查训练与推理预处理是否一致
+- [x] 实现图像、观测状态、预测动作和发布动作时间戳保存（待下一批真实 episode 产出证据）
 
 停止标准：如发现输入、归一化、关节顺序或时序错误，暂停算法消融，先修复并重新建立基线。
 
@@ -38,12 +100,20 @@
 
 ## P0：量化已有模型的粗视觉跟随
 
-- [ ] 设计离散左右、前后平移和旋转布局
+- [x] 设计离散左右、前后平移和旋转布局（`C,L,R,F,B,CCW,CW`）
 - [ ] 对每个布局记录真实角点位移
 - [ ] 记录左右 gripper 最近接位置和闭合位置
 - [ ] 估计 `G_x / G_y / G_yaw`
 - [ ] 记录左右臂偏置、方差和不对称性
 - [ ] 使用相同初始布局进行配对试验
+
+自动测量实现状态：
+
+- [x] 从 `/joint_states` + 双 Piper URDF 计算 `world` 下左右 `gripper_tcp` 轨迹和位移（mm）
+- [x] 从固定 D435i 检测蓝毛巾中心、方向和四角（pixel），保存首末叠图和时间序列
+- [x] FK 与在线 TF 只读交叉验证：左右 TCP 数值误差均为 `0.0 mm`
+- [x] 用已有 `test1/episode_000022` 完成离线冒烟：左/右 TCP 位移 `534.0/322.5 mm`
+- [ ] 标定固定 D435i 到 `world` 的外参或桌面 homography；完成前不得把 pixel 与 mm 相减，也不得把探索性 pixel→TCP 回归称为真实 `G`
 
 判断规则：
 
@@ -73,7 +143,9 @@
 
 - [ ] 固定毛巾、双臂初始位置和相机
 - [ ] 只做 corner-approach，不闭合、不折叠
-- [ ] 采集约 20 条高度一致示范并明显过拟合
+- [x] 采集只接近角点的示范并训练候选模型（实际 40 条；`test1/020000`）
+- [x] 部署入口加入夹爪保持张开的硬保护（`--hold-grippers-open`）
+- [x] `M=30` 完成定性真机测试：可接近/跟随角点
 - [ ] 至少执行 20 次
 - [ ] 使用捕获区域阈值判断是否到达
 
@@ -150,11 +222,15 @@
 
 ## 当前最近执行顺序
 
-- [ ] **1. 冻结当前基线配置和配对初始布局**
-- [ ] **2. 导出实际网络输入、预测动作、执行动作和时间戳**
-- [ ] **3. 测量夹爪物理捕获区域**
-- [ ] **4. 用现有模型量化 `G_x / G_y / G_yaw`**
-- [ ] **5. 做 50/30/15 mm late-perturbation 实验**
-- [ ] **6. 如仍怀疑 pipeline，再完成固定场景过拟合 sanity check**
-- [ ] **7. 根据证据选择 Oracle、反馈带宽或视觉表征实验**
-- [ ] **8. 在主要机制定位前，不盲目扩展完整 folding 数据量或直接堆新模块**
+- [x] **1. 冻结当前基线配置，定义 `C,L,R,F,B,CCW,CW` 初筛布局**
+- [x] **2. 实现真实推理 query、预测动作、发布动作和时间戳记录**
+- [x] **3. 实现 TCP 毫米位移 + 顶视毛巾像素位移自动测量并通过离线门**
+- [ ] **4. 人类真机门：以 `M=30`、夹爪强制张开录制上述 7 个布局**
+- [ ] **5. 对新录包运行 `analyze-corner-following`，先判断方向一致性、偏置和不对称性**
+- [ ] **6. 补固定相机到 `world` 的平面标定，再正式量化 `G_x/G_y/G_yaw` 和角点毫米误差**
+- [ ] **7. 完成 20 次 approach-only 验收；此后再测夹爪捕获区域并恢复 Grasp-Only 数据采集**
+- [ ] **8. 只有静态跟随证据成立后才做 50/30/15 mm late-perturbation；根据证据选择 Oracle、反馈带宽或视觉表征实验**
+- [ ] **9. 在主要机制定位前，不扩展完整 folding 数据量或直接堆新模块**
+
+真机门命令和操作顺序见
+`/home/alpha/physical_ai_runtime/apps/README.md` 的“M=30 角点跟随录制与自动测量”。
