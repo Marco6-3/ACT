@@ -9,9 +9,12 @@
 任务目标：双臂分别抓住蓝色方巾的两个指定材料角，并在抬升 10 cm 后稳定保持 3 s。
 
 - 策略：ACT；
-- 数据状态（2026-08-28）：今天已完成 100 条五路同步直接抓角示教，三个单外部视角 LeRobot 数据集正在转换，尚未完成最终验收；
-- 当前直接抓角成功率：尚待按本文新协议建立；旧完整折叠测试中多次接近 0，不能替代新基线；
-- 最常见失败：双臂在接触前没有同时精确对准两个目标角；
+- 数据状态（2026-08-29）：100 条五路同步直接抓角示教已完成转换和验收，三个单外部视角数据集各 100 episodes、35,474 帧；
+- 模型状态（2026-08-29）：E1–E4 均已训练到 20,000 steps；用户已定性尝试 E1–E3，三者都能到目标角附近，但几乎不能完成双侧有效抓取和抬起；
+- 当前直接抓角结果：E3-Orbbec 固定五布局中，M=30 为正确双角 2/5、双侧抓错位置 1/5、单侧有效 2/5；M=10 为正确双角 2/5、双侧抓错位置 2/5、单侧有效 1/5，已夹持后均无滑脱；M=5 被同步推理阻塞和 60 s 超时混杂，L2/L3/L5 结束前从未发出闭合指令，不能按落点失败解释；
+- 收尾 smoke：撤销重复 hold 后，操作员确认 L1/L3 可夹起，最新 L3 trace 双侧闭合且 health PASS；L2 仍 timeout，“光照导致犹豫”暂为待验证假设；
+- 下一阶段：先完成 E3-Orbbec M=10 固定 L1–L5 的 20 次正式评估，再以匹配 checkpoint/topic 的 E1-D435i1、E2-D435i2 做同协议相机视角比较；
+- 最强诊断信号：100 条成功示教全部为左右长间隔串行闭合，首次闭合间隔中位数 2.80 s，且训练分布内预测 TCP 同时刻误差仍为厘米级；
 - 已尝试：改变毛巾平移和角度、调整外部相机视角。
 
 ## 2. 证据分层
@@ -237,6 +240,9 @@ prediction horizon K × executed steps per query M × temporal aggregation
 - [`docs/EXPERIMENT_PROTOCOL.md`](./docs/EXPERIMENT_PROTOCOL.md)：实验变量、指标和统计协议；
 - [`docs/MULTIVIEW_RESEARCH_PLAN.md`](./docs/MULTIVIEW_RESEARCH_PLAN.md)：多视角现象、机制、跨视角一致性与单视角压缩路线；
 - [`docs/FAILURE_TAXONOMY.md`](./docs/FAILURE_TAXONOMY.md)：失败分类规则；
+- [`results/e1_e3_grasp_failure_diagnosis_2026-08-29.md`](./results/e1_e3_grasp_failure_diagnosis_2026-08-29.md)：E1–E3 训练、数据时序、离线误差和真机失败原因排序；
+- [`results/e3_m30_screening_2026-08-29.md`](./results/e3_m30_screening_2026-08-29.md)：E3-Orbbec M=30 五布局真机结果、trace 时延和下一 Gate；
+- [`results/e3_m10_m5_screening_2026-08-29.md`](./results/e3_m10_m5_screening_2026-08-29.md)：同布局 M=10/M=5 配对结果、闭合 trace 与同步推理时序诊断；
 - [`results/result_schema.csv`](./results/result_schema.csv)：逐次试验结果字段模板。
 - [`results/data_collection_2026-08-28.md`](./results/data_collection_2026-08-28.md)：今日 100 条采集与三视角转换快照、数据口径和验收门槛。
 
