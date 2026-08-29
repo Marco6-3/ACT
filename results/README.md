@@ -2,7 +2,15 @@
 
 `result_schema.csv` 是逐次试验的最小字段模板。正式结果应一行对应一次 trial，不要只保存汇总成功率。
 
-当前数据进度见 [`data_collection_2026-08-28.md`](./data_collection_2026-08-28.md)。该记录区分了“100 条正式数据已采集”“原始成功目录实际为 101 个”和“三份派生数据仍在转换”三种口径；转换完成前不要将中间计数写成最终训练集规模。
+最终数据验收见 [`data_acceptance_2026-08-29.md`](./data_acceptance_2026-08-29.md)；E1–E3 训练与真机失败诊断见
+[`e1_e3_grasp_failure_diagnosis_2026-08-29.md`](./e1_e3_grasp_failure_diagnosis_2026-08-29.md)。
+E3-Orbbec 的 M=30 五布局真机结果见
+[`e3_m30_screening_2026-08-29.md`](./e3_m30_screening_2026-08-29.md)。
+相同布局的 M=10/M=5 配对结果与闭合 trace 诊断见
+[`e3_m10_m5_screening_2026-08-29.md`](./e3_m10_m5_screening_2026-08-29.md)。
+该记录也包含后台推理/重复 hold 的真机反证、无 hold 收尾 smoke、L2 光照敏感性假设，以及下一阶段
+E3 正式 20 次和 E1/E2 相机对比计划。
+[`data_collection_2026-08-28.md`](./data_collection_2026-08-28.md) 只保留转换过程中的历史快照，不再代表当前状态。
 
 多视角实验应特别注意：
 
