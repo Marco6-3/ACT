@@ -1,0 +1,43 @@
+{
+  "episode": "/home/alpha/physical_ai_runtime/data/episodes/bimanual_pickup/episode_000001",
+  "healthy": true,
+  "finalizer_result": "PASS",
+  "writer_failed": false,
+  "total_recorder_drops": 0,
+  "errors": [],
+  "required_streams": {
+    "orbbec_color": {
+      "received": 150,
+      "written": 150,
+      "recorder_drops": 0
+    },
+    "d435i1_color": {
+      "received": 150,
+      "written": 150,
+      "recorder_drops": 0
+    },
+    "d435i2_color": {
+      "received": 150,
+      "written": 150,
+      "recorder_drops": 0
+    },
+    "left_wrist_realsense_color": {
+      "received": 150,
+      "written": 150,
+      "recorder_drops": 0
+    },
+    "right_wrist_realsense_color": {
+      "received": 150,
+      "written": 150,
+      "recorder_drops": 0
+    },
+    "robot_joint_states": {
+      "received": 2277,
+      "written": 2277,
+      "recorder_drops": 0
+    }
+  },
+  "schema_version": "1.0",
+  "experiment_id": "act_multiview_screening_v1",
+  "source_episode_id": "bimanual_pickup_20260827T114827257034Z_b02cf767"
+}
