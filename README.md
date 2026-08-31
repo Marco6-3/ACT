@@ -11,9 +11,9 @@
 - 策略：ACT；
 - 数据状态（2026-08-29）：100 条五路同步直接抓角示教已完成转换和验收，三个单外部视角数据集各 100 episodes、35,474 帧；
 - 模型状态（2026-08-29）：E1–E4 均已训练到 20,000 steps；用户已定性尝试 E1–E3，三者都能到目标角附近，但几乎不能完成双侧有效抓取和抬起；
-- 当前直接抓角结果：E3-Orbbec 固定五布局中，M=30 为正确双角 2/5、双侧抓错位置 1/5、单侧有效 2/5；M=10 为正确双角 2/5、双侧抓错位置 2/5、单侧有效 1/5，已夹持后均无滑脱；M=5 被同步推理阻塞和 60 s 超时混杂，L2/L3/L5 结束前从未发出闭合指令，不能按落点失败解释；
+- pilot 结果：E3-Orbbec 固定五布局中，M=30 为正确双角 2/5、M=10 为正确双角 2/5；旧 M=5 受同步推理阻塞和 60 s 超时混杂。这些 5 次筛查不并入当前 runtime 的正式 20 次；
 - 收尾 smoke：撤销重复 hold 后，操作员确认 L1/L3 可夹起，最新 L3 trace 双侧闭合且 health PASS；L2 仍 timeout，“光照导致犹豫”暂为待验证假设；
-- 下一阶段：先完成 E3-Orbbec M=10 固定 L1–L5 的 20 次正式评估，再以匹配 checkpoint/topic 的 E1-D435i1、E2-D435i2 做同协议相机视角比较；
+- 下一阶段：E3-Orbbec 的 M=5/10/30 在当前 runtime 下各做 20 次，选出 M 后固定它比较 E1-D435i1、E2-D435i2、E3-Orbbec，再评估 E4/Mix-1 和 E3 跨相机泛化；
 - 最强诊断信号：100 条成功示教全部为左右长间隔串行闭合，首次闭合间隔中位数 2.80 s，且训练分布内预测 TCP 同时刻误差仍为厘米级；
 - 已尝试：改变毛巾平移和角度、调整外部相机视角。
 
@@ -238,6 +238,7 @@ prediction horizon K × executed steps per query M × temporal aggregation
 - [`DIAGNOSIS_2026-08-26.md`](./DIAGNOSIS_2026-08-26.md)：初始失败诊断及后续状态更新；
 - [`docs/RESEARCH_QUESTION.md`](./docs/RESEARCH_QUESTION.md)：研究假设、反驳条件和贡献边界；
 - [`docs/EXPERIMENT_PROTOCOL.md`](./docs/EXPERIMENT_PROTOCOL.md)：实验变量、指标和统计协议；
+- [`docs/NEXT_EXPERIMENTS.md`](./docs/NEXT_EXPERIMENTS.md)：当前冻结的简明实验顺序、次数与结论边界；
 - [`docs/MULTIVIEW_RESEARCH_PLAN.md`](./docs/MULTIVIEW_RESEARCH_PLAN.md)：多视角现象、机制、跨视角一致性与单视角压缩路线；
 - [`docs/FAILURE_TAXONOMY.md`](./docs/FAILURE_TAXONOMY.md)：失败分类规则；
 - [`results/e1_e3_grasp_failure_diagnosis_2026-08-29.md`](./results/e1_e3_grasp_failure_diagnosis_2026-08-29.md)：E1–E3 训练、数据时序、离线误差和真机失败原因排序；
@@ -248,10 +249,10 @@ prediction horizon K × executed steps per query M × temporal aggregation
 
 ## 11. 当前最近一步
 
-1. 等待三份转换结束，并确认 101 个成功目录中哪 1 条不属于正式 100 条；
-2. 对三视角数据执行 episode、fingerprint、frame、state/action/timestamp、视频和 dataloader 输入验收；
-3. 按 source episode 冻结 80/10/10 split，训练三个单外部视角模型、E4 / Mix-1 和 Single-repeat 控制；
-4. 每组完成配对筛查，输出左右闭合误差、物理捕获区域命中率和稳定抓角成功率；
-5. Mix-1 达标后才进入 Random-2、All-3 和后续机制实验。
+1. 当前 runtime 下完成 E3-Orbbec 的 M=5/10/30 各 20 次，旧 5 次只作为 pilot；
+2. 固定实际最佳 M，完成 E1-D435i1、E2-D435i2 各 20 次，E3 复用阶段 1 结果；
+3. E4/Mix-1 分别在三台顶部相机上各 20 次，并与同相机单视角基线比较；
+4. E3 换 D435i1/D435i2 先各 5 次 smoke，有有效行为再扩到各 20 次；
+5. 只有 E4 与 Single-repeat 控制相比仍有可靠收益，才进入真正同时输入多相机的 Random-2/All-3。
 
-只有视角混合或同时多视角可靠优于单视角及训练步数控制后，才进入跨视角一致性和单视角蒸馏。
+具体布局、次数和结论边界以 [`docs/NEXT_EXPERIMENTS.md`](./docs/NEXT_EXPERIMENTS.md) 为准。
