@@ -1,6 +1,9 @@
 # 多视角柔性材料角点抓取研究路线
 
-> 进度（2026-08-28）：100 条正式五路同步直接抓角示教已采集；Orbbec、D435i1、D435i2 三份单外部视角数据正在从同一批 source episodes 转换。当前阶段是数据冻结与转换验收，尚未开始 E1–E4 训练。具体快照见 [`../results/data_collection_2026-08-28.md`](../results/data_collection_2026-08-28.md)。
+> 进度（2026-08-29）：100 条正式五路同步直接抓角示教及三视角转换已验收，E1–E4
+> 均训练到 20,000 steps。当前先在 E3-Orbbec 上完成 M=5/10/30 各 20 次，再固定最佳 M
+> 比较单视角基线、E4/Mix-1 和跨相机泛化。简明顺序见
+> [`NEXT_EXPERIMENTS.md`](./NEXT_EXPERIMENTS.md)。
 
 ## 1. 研究主线
 
@@ -93,9 +96,9 @@ X_hat_1(p_1) ~= X_hat_2(p_2) ~= X_hat_3(p_3) ~= X
 
 | 条件 | 每条样本的外部相机输入 | 样本数 | 目的 |
 |---|---|---:|---|
-| E1 | `external_1` | 100 | 单视角方位 1 |
-| E2 | `external_2` | 100 | 单视角方位 2 |
-| E3 | `external_3` | 100 | 单视角方位 3 |
+| E1 | D435i1 → `observation.images.top` | 100 | D435i1 单视角基线 |
+| E2 | D435i2 → `observation.images.top` | 100 | D435i2 单视角基线 |
+| E3 | Orbbec → `observation.images.top` | 100 | Orbbec 单视角基线 |
 | E4 / Mix-1 | `external_1/2/3` 中的一台 | 300 个视角样本 / 100 个 source episodes | 跨视角混合训练 |
 | Single-repeat | 最佳单视角重复采样 | 与 E4 相同 updates | 排除训练步数混杂 |
 | E5 / Random-2 | 随机两台，固定槽位和 mask | 后续阶段 | 两视角互补 |
