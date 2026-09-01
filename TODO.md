@@ -1,10 +1,15 @@
-# TODO — ACT 多视角角点抓取实验
+# TODO — ACT 柔性材料角点抓取实验
 
 > 状态更新（2026-09-01）：E1/E2/E3 的 `M=10/20/30` 各 10 次初筛、E3 跨相机 OOD
 > 初筛和旧 Mix-1-300@20k pilot 已完成。后续统一冻结 `M=20`，执行三组新实验：
 > Mix-1-100@20k、Mix-1-300@60k、All-3@20k。三组均无帮助时停止继续扩展多视角，
 > 转向其他提高成功率的方法。简明顺序见
 > [`docs/NEXT_EXPERIMENTS.md`](./docs/NEXT_EXPERIMENTS.md)。
+>
+> 多视角收尾后的优先候选主线已新增：先做 **Experiment A：Mixed-order vs Fixed-order**
+> 验证示教时序多模态是否造成行为克隆状态别名；只有 A 出现明确机制效应后才进入
+> **Experiment C：Phase-ACT**。完整协议见
+> [`docs/TEMPORAL_CONSISTENCY_PHASE_ACT_PLAN.md`](./docs/TEMPORAL_CONSISTENCY_PHASE_ACT_PLAN.md)。
 
 > 项目边界：ACT 只保存研究问题、实验规划、数据快照、训练/评估设计和结果；相机/机器人启动、采集、转换、训练与控制程序归 `/home/alpha/physical_ai_runtime`。本仓库不再维护这些运行代码的副本。
 
@@ -76,13 +81,41 @@
 - [ ] 正式 trial 增加 lighting note：顶灯/窗帘状态、明显阴影/反光及自动曝光异常；未做控光配对前不声称 L2 因光照失败
 - [ ] 分别报告 E4 在三个部署外部视角上的性能，不只报告合并平均值
 
-## Go/No-Go
+## Go/No-Go：多视角主线
 
 - [ ] Mix-1-100@20k 改善：说明固定样本数/updates 下视角多样性有探索性收益，补配对样本确认
 - [ ] 只有 Mix-1-300@60k 改善：先做 Single-repeat@60k，不能把更多曝光直接归因于多视角
 - [ ] 只有 All-3@20k 改善：做逐相机 mask、错帧和遮挡干预，验证推理期互补来源
-- [ ] 三组均无可靠提升或失败机制不变：停止 Random-2、跨视角 loss 和蒸馏，转向示教、反馈、接触与控制方法
+- [ ] 三组均无可靠提升或失败机制不变：停止 Random-2、跨视角 loss 和蒸馏，转入 Experiment A
 - [ ] 只有多视角收益与闭合误差/不确定度下降一致时，才进入跨视角材料点一致性与单视角蒸馏
+
+## P1：Experiment A — 示教时序一致性
+
+> 目的：验证当前 57 条左先 / 43 条右先、首次闭合间隔中位数 2.80 s 的混合顺序示教，是否造成行为克隆动作多模态。完整协议见 `docs/TEMPORAL_CONSISTENCY_PHASE_ACT_PLAN.md`。
+
+- [ ] 对现有 100 条 source 自动标注 `first_close_side`、首次闭合时间和左右闭合间隔，并保存不可变清单
+- [ ] 按布局/初始位置分层构建 `A0/Mixed-40 = 20 L-first + 20 R-first`
+- [ ] 构建 `A1/Left-first-40 = 40 L-first`
+- [ ] 构建 `A2/Right-first-40 = 40 R-first`
+- [ ] 三组均使用 Orbbec + wrists、batch size 4、seed 1000、8k steps，保持 40@8k 与现有 100@20k 相同 updates/episode 口径
+- [ ] 冻结 `M=20`、五布局和当前 no-hold runtime，每组先做 10 trials
+- [ ] 逐 trial 记录第一侧成功、第二侧成功、`P(second|first success)`、`P(second|first fail)`、闭合间隔和 failure code
+- [ ] 若 A1/A2 任一相对 A0 有至少 3/10 的成功数优势，或闭合误差有清晰下降，将相关条件扩展到至少 20 trials
+- [ ] 若效应成立，再补 2 个训练 seed；若仅单布局改善，不进入 Phase-ACT
+- [ ] 若 Fixed-order 与 Mixed-order 基本一致，停止时序多模态主线，转空间精度/接触/反馈
+
+## P2：Experiment C — Phase-ACT（仅由 A 触发）
+
+- [ ] **禁止提前启动：** Experiment A 未形成明确机制证据前，不修改 ACT 网络
+- [ ] 从现有示教自动生成 `P0 approach / P1-L / P1-R / P2 second-side align / P3 dual-grasp / P4 lift-hold` 标签
+- [ ] 冻结 phase 边界规则、闭合阈值和 ignore window，并把生成脚本放在 `physical_ai_runtime`
+- [ ] 训练 `C0 Raw-ACT`：mixed-order 基线
+- [ ] 训练 `C1 Oracle-Phase ACT`：使用真实 phase token，验证 phase 信息上限
+- [ ] 只有 C1 优于 C0 时，再训练 `C2 Predicted-Phase ACT`：phase head + phase embedding + ACT
+- [ ] C2 与 C0 使用相同 mixed-order 数据、backbone、M、训练预算和相机输入；首轮不同时改 chunk、backbone 或多视角
+- [ ] 同时报告 phase 分类、闭合误差、第一/第二侧条件成功率和最终 stable grasp success
+- [ ] 若 C1 不优于 C0，停止 Phase-ACT；若 C1 有效而 C2 无效，转向“phase/contact state estimation”问题
+- [ ] `P5-recovery` 只在未来真正采集 corrective/recovery demonstrations 后加入，不能凭空定义恢复阶段
 
 ## 仍需补齐的基础测量
 
