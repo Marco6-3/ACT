@@ -94,5 +94,35 @@ All-3 必须创建 5 图像 feature schema、重新训练并使用 runtime 的
 反馈、接触与控制方法。若任一组明确改善，再补配对样本并做逐相机 mask、错帧和遮挡
 干预。
 
+## 多视角收尾后的下一主线：Experiment A → Experiment C
+
+如果 Gate 5–7 均没有形成可靠增益，或者即使有小幅数值改善但主要失败机制仍是“第一侧抓取失败后第二侧继续错误阶段动作”，下一主线冻结为示教时序一致性，而不是继续添加相机或跨视角 loss。
+
+### Experiment A：Mixed-order vs Fixed-order
+
+使用已有 Orbbec + wrists 数据，不先采新数据。按首次闭合侧构建：
+
+| 条件 | 数据 | 训练预算 |
+|---|---:|---:|
+| A0 Mixed-40 | 20 L-first + 20 R-first | 8k steps |
+| A1 Left-first-40 | 40 L-first | 8k steps |
+| A2 Right-first-40 | 40 R-first | 8k steps |
+
+40@8k 与当前 100@20k 保持相同 updates/episode 比例。三组固定 batch size、seed 1000、M=20、Orbbec、五布局和 no-hold runtime。每组先 10 trials；若固定顺序相对 Mixed 至少出现 3/10 的绝对成功数优势，或闭合误差/第二侧条件成功率有清晰改善，再扩到至少 20 trials 并补训练 seed。
+
+如果 Fixed-order 与 Mixed-order 基本一致，则停止时序多模态主线，不实现 Phase-ACT。
+
+### Experiment C：Phase-ACT
+
+只有 Experiment A 支持时序一致性效应后启动。先在 mixed-order 数据上比较：
+
+1. `C0 Raw-ACT`；
+2. `C1 Oracle-Phase ACT`：真实 phase token，验证 phase 信息上限；
+3. `C2 Predicted-Phase ACT`：phase classifier + phase embedding + ACT，可部署方案。
+
+首版 phase：`P0 approach / P1-L / P1-R / P2 second-side align / P3 dual-grasp / P4 lift-hold`。没有 corrective demonstrations 之前不加入 recovery phase。
+
+只有 C1 明显优于 C0 才继续 C2；如果 C1 都无收益，立即停止 Phase-ACT。完整协议、机制指标和 kill criteria 见 [`TEMPORAL_CONSISTENCY_PHASE_ACT_PLAN.md`](./TEMPORAL_CONSISTENCY_PHASE_ACT_PLAN.md)。
+
 已完成门槛的复现命令和 E4 十次探索命令见
 `/home/alpha/physical_ai_runtime/apps/README.md` 第 7 节。
