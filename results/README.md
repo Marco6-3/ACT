@@ -1,5 +1,7 @@
 # 实验结果目录
 
+当前主结果是 [`curriculum_hil_finetune_2026-09-02.md`](./curriculum_hil_finetune_2026-09-02.md)，记录“直接抓角预训练 → 困难状态人工接管 → 完整任务微调 → 定性成功”的课程式训练链。明日配对筛查使用 [`curriculum_screening_2026-09-03.csv`](./curriculum_screening_2026-09-03.csv)。下列多视角与抓角记录保留为历史诊断，不再是当前主线。
+
 `result_schema.csv` 是逐次试验的最小字段模板。正式结果应一行对应一次 trial，不要只保存汇总成功率。
 
 最终数据验收见 [`data_acceptance_2026-08-29.md`](./data_acceptance_2026-08-29.md)；E1–E3 训练与真机失败诊断见
