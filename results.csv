@@ -1,0 +1,16 @@
+model,initialization,training_data,training_steps,towel,color,shape,training_exposure,success_code,n_success,n_trials,success_rate,wilson_95_lower,wilson_95_upper,placement
+base20k,random,blue_square_pretraining_100,20000,blue_square,blue,square,pretrain,"0010110011",5,10,0.50,0.237,0.763,random_unrecorded
+base20k,random,blue_square_pretraining_100,20000,green_square,green,square,hil,"0000101010",3,10,0.30,0.108,0.603,random_unrecorded
+base20k,random,blue_square_pretraining_100,20000,red_square,red,square,hil,"0000001001",2,10,0.20,0.057,0.510,random_unrecorded
+base20k,random,blue_square_pretraining_100,20000,yellow_square,yellow,square,unseen,"0100000000",1,10,0.10,0.018,0.404,random_unrecorded
+base20k,random,blue_square_pretraining_100,20000,white_rectangle,white,rectangle,unseen_color_instance_shape,"1000000100",2,10,0.20,0.057,0.510,random_unrecorded
+scratch20k,random,hil_101,20000,blue_square,blue,square,pretrain,"0000000000",0,10,0.00,0.000,0.278,random_unrecorded
+scratch20k,random,hil_101,20000,green_square,green,square,hil,"1000000100",2,10,0.20,0.057,0.510,random_unrecorded
+scratch20k,random,hil_101,20000,red_square,red,square,hil,"1100000001",3,10,0.30,0.108,0.603,random_unrecorded
+scratch20k,random,hil_101,20000,yellow_square,yellow,square,unseen,"1000000010",2,10,0.20,0.057,0.510,random_unrecorded
+scratch20k,random,hil_101,20000,white_rectangle,white,rectangle,unseen_color_instance_shape,"0011000010",3,10,0.30,0.108,0.603,random_unrecorded
+finetune10k,base20k,hil_101,10000,blue_square,blue,square,pretrain,"1110011111",8,10,0.80,0.490,0.943,random_unrecorded
+finetune10k,base20k,hil_101,10000,green_square,green,square,hil,"1110111111",9,10,0.90,0.596,0.982,random_unrecorded
+finetune10k,base20k,hil_101,10000,red_square,red,square,hil,"1111101101",8,10,0.80,0.490,0.943,random_unrecorded
+finetune10k,base20k,hil_101,10000,yellow_square,yellow,square,unseen,"0110011011",6,10,0.60,0.313,0.832,random_unrecorded
+finetune10k,base20k,hil_101,10000,white_rectangle,white,rectangle,unseen_color_instance_shape,"1010010100",4,10,0.40,0.168,0.687,random_unrecorded
