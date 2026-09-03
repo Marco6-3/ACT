@@ -1,47 +1,36 @@
-# 下一步实验（2026-09-03）
+# 2026-09-03 最终评估设计归档
 
-当前状态：完整抓取到折叠已定性成功。明天不再探索新模型结构，先关闭定量证据缺口。
+状态：已完成并收尾。本文件保留原定的测试矩阵与实际执行差异；最终结果见 [../results/final_curriculum_evaluation_2026-09-03.md](../results/final_curriculum_evaluation_2026-09-03.md)，不再是实时“下一步”清单。
 
-## Gate 0：数据与配置冻结（真机运动前）
+## 冻结评估矩阵
 
-- [ ] 从 HIL 的 101 个磁盘 episode 中确认哪 100 个是有效训练样本，输出固定 ID 清单；
-- [ ] 为每条 HIL episode 补 `towel_id / color / layout_semantics / accepted`；
-- [ ] 解释 101 条 `episode_health.result=WARN` 的具体 profile 原因；当前顶层 `errors/warnings` 均为空，但不能直接视为 PASS；
-- [ ] 固定 `base20k / scratch10k / finetune10k` 三个 checkpoint；
-- [ ] 记录实际 executed steps `M`、相机 topic、曝光/照明和安全限制；
-- [ ] 贴好 C 与 H1–H4 桌面标记，记录毫米偏移和方向；
-- [ ] 选定第三颜色的未见毛巾，并确认它未进入 HIL 数据。
+| 模型 | 训练来源 | 每种毛巾次数 | 合计 | 最终成功数 |
+|---|---|---:|---:|---:|
+| `finetune10k` | 蓝色方巾预训练 → HIL-101 继承微调 10k updates | 10 | 50 | 35 |
+| `base20k` | 仅蓝色方巾预训练 20k updates，无 HIL 微调 | 10 | 50 | 13 |
+| `scratch20k` | 随机初始化，用同一 HIL-101 训练 20k updates | 10 | 50 | 10 |
+| **总计** | 3 模型 × 5 毛巾 × 10 次 |  | **150** | **58** |
 
-通过证据：有效 episode 清单、三模型路径、布局照片/坐标和空白 trial 表全部保存。未通过时不开始正式计数。
+| 毛巾条件 | 颜色/形状 | 训练暴露 | `base20k` | `scratch20k` | `finetune10k` |
+|---|---|---|---:|---:|---:|
+| T-blue-pretrain-square | 蓝 / 正方形 | 预训练内 | 5 / 10 | 0 / 10 | 8 / 10 |
+| T-red-hil-square | 红 / 正方形 | HIL 内 | 2 / 10 | 3 / 10 | 8 / 10 |
+| T-green-hil-square | 绿 / 正方形 | HIL 内 | 3 / 10 | 2 / 10 | 9 / 10 |
+| T-yellow-unseen-square | 黄 / 正方形 | 未见颜色/实例 | 1 / 10 | 2 / 10 | 6 / 10 |
+| T-white-unseen-rectangle | 白 / 长方形 | 未见颜色/实例/形状 | 2 / 10 | 3 / 10 | 4 / 10 |
 
-## Gate 1：安全 smoke
+## 原定执行边界
 
-按 `finetune10k → base20k → scratch10k` 各做 1 次中心布局低速 smoke，不计入正式成功率。确认三模型加载正确、初始动作方向正确、夹爪与工作空间安全、录制可用。
+- 每条为全自主正式 trial；人工接管、安全停止或超时均计失败；
+- 原计划为中心标准布局 C；实际执行时毛巾随机摆放，且没有保存位移、朝向或位置难度标签。因此结果是随机摆放下的条件汇总，不是固定布局或可分层的位置鲁棒性评估；
+- 每个模型 × 毛巾条件的目标样本数为 10，模型顺序与毛巾顺序由 10 个 block 轮换；
+- 成功的预定义主终点为：双侧正确抓住预定角、抬升无滑脱、完成折叠、释放后保持至少 3 s，且全程无人工接管、安全停止或超时；
+- 白色条件同时改变颜色、实例和形状，只能表示综合色/形状分布外条件，不能分离形状的因果影响。
 
-通过证据：三条 episode 均可唯一关联 checkpoint，无异常运动。任何模型加载或控制配置不同都先修复，不进入 Gate 2。
+## 证据归档状态
 
-## Gate 2：36-trial 课程对照
+[../results/curriculum_screening_2026-09-03.csv](../results/curriculum_screening_2026-09-03.csv) 是评估前生成的 150 行、10 个 block 的 run sheet；其中的 `layout_id=C` 是原计划字段，不是本次随机摆放的实测位置记录。当前收到的实验结果按“模型 × 毛巾”的 10 位 0/1 编码汇总，未提供编码位与 `TS001`–`TS150` 的可靠映射，故该 run sheet 保持为预注册顺序记录，不作虚构回填。
 
-执行 [`../results/curriculum_screening_2026-09-03.csv`](../results/curriculum_screening_2026-09-03.csv)。三模型、三毛巾、C/H1、两次重复；全自主，无人工补救。
+条件级机器可读结果在 [../results/curriculum_final_evaluation_2026-09-03.csv](../results/curriculum_final_evaluation_2026-09-03.csv)。它支持成功率与 Wilson 区间计算，但不支持逐条视频复核、失败阶段、任务时间、折叠误差或无效重测分析。
 
-判读：
-
-- Fine-tune > Base：HIL 微调改善了完整任务；
-- Fine-tune > Scratch10k：继承直接抓角预训练具有数据效率/性能价值；
-- Fine-tune 只在红绿有效：只支持训练颜色内能力，不支持颜色泛化；
-- Fine-tune 在未见毛巾也有效：支持初步跨颜色/实例泛化；
-- 三者接近：不能归因于课程，检查天花板效应并增加更困难布局；
-- 三者都差：先核对训练/测试配置漂移，不继续扩模型。
-
-## Gate 3：45-trial 最终候选验收
-
-只有 Gate 2 安全且 `finetune10k` 表现最好时执行：3 毛巾 × C/H1/H2/H3/H4 × 3 repeats。输出总体、颜色、布局、阶段成功率和 Wilson 95% CI。
-
-## Gate 4：结论冻结
-
-- [ ] 将逐 trial CSV、汇总表和失败视频索引写入 `results/`；
-- [ ] 明确区分工程结论、探索性统计和因果结论；
-- [ ] 若课程优势成立，将多视角和 Phase-ACT 标为 deferred；
-- [ ] 若优势不成立，再根据第一失败 Gate 选择补数据、对齐训练预算或恢复旧研究路线。
-
-完整判定规则见 [`EXPERIMENT_PROTOCOL.md`](./EXPERIMENT_PROTOCOL.md)。
+若后续继续研究，应新建实验协议，而不是把多 seed、多实例、偏位、光照或 HIL 组成消融追加为本次评估的事后条件。

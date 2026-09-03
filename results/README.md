@@ -1,35 +1,22 @@
 # 实验结果目录
 
-当前主结果是 [`curriculum_hil_finetune_2026-09-02.md`](./curriculum_hil_finetune_2026-09-02.md)，记录“直接抓角预训练 → 困难状态人工接管 → 完整任务微调 → 定性成功”的课程式训练链。明日配对筛查使用 [`curriculum_screening_2026-09-03.csv`](./curriculum_screening_2026-09-03.csv)。下列多视角与抓角记录保留为历史诊断，不再是当前主线。
+当前主结果是 [final_curriculum_evaluation_2026-09-03.md](./final_curriculum_evaluation_2026-09-03.md)：它冻结本阶段的 150 次条件化评估结论，并给出原始 0/1 汇总编码、Wilson 95% CI、可支持的结论和限制。
 
-`result_schema.csv` 是逐次试验的最小字段模板。正式结果应一行对应一次 trial，不要只保存汇总成功率。
+[curriculum_final_evaluation_2026-09-03.csv](./curriculum_final_evaluation_2026-09-03.csv) 是与报告对应的机器可读条件汇总：3 个模型 × 5 条毛巾，每个条件 10 次。`success_code` 中的每一位对应一次成功（1）或失败（0）。它保留了操作者提交的条件级编码，但没有可靠的 trial ID、阶段标签、视频路径或运行时元数据映射；因此不能把它误作完整逐 trial 原始台账，也不能从中反推失败阶段、任务时间或折叠误差。
 
-最终数据验收见 [`data_acceptance_2026-08-29.md`](./data_acceptance_2026-08-29.md)；E1–E3 训练与真机失败诊断见
-[`e1_e3_grasp_failure_diagnosis_2026-08-29.md`](./e1_e3_grasp_failure_diagnosis_2026-08-29.md)。
-E3-Orbbec 的 M=30 五布局真机结果见
-[`e3_m30_screening_2026-08-29.md`](./e3_m30_screening_2026-08-29.md)。
-相同布局的 M=10/M=5 配对结果与闭合 trace 诊断见
-[`e3_m10_m5_screening_2026-08-29.md`](./e3_m10_m5_screening_2026-08-29.md)。
-该记录也包含后台推理/重复 hold 的真机反证、无 hold 收尾 smoke、L2 光照敏感性假设，以及下一阶段
-E3 正式 20 次和 E1/E2 相机对比计划。
-[`data_collection_2026-08-28.md`](./data_collection_2026-08-28.md) 只保留转换过程中的历史快照，不再代表当前状态。
+[curriculum_screening_2026-09-03.csv](./curriculum_screening_2026-09-03.csv) 保留为评估前生成的 150 行 run sheet。它记录随机化测试顺序和条件定义，其中的中心布局 C 是原计划字段；实际测试改为随机摆放、且未保存位置元数据。该表没有用本次汇总编码回填，避免在缺少“编码位置 ↔ TS 编号”对应关系时虚构逐条实验记录。
 
-多视角实验应特别注意：
+与阶段收尾相关的记录：
 
-- `external_camera_count` 只统计外部观察相机，腕部相机单独记录；
-- `source_episode_id` 保留同步视角共同来源，避免把同一示教重复计数；
-- `*_visibility` 使用 `visible / partial / occluded / unknown`；
-- `camera_intervention` 记录 mask、错帧替换或局部遮挡；
-- `correspondence_*` 字段只有在运行对应评估时填写，否则留空；
-- 自动标签必须保留 `label_source` 和人工复核状态。
-- `stable_corner_grasp_success` 是当前主要任务标签：抓对双侧指定材料角，抬升 10 cm 并保持 3 s，无滑脱且未明显夹入内侧布料；
-- `fold_success` 和 `full_task_success` 仅用于未来或附加实验，不能替代当前稳定抓角主要终点。
+- [curriculum_hil_finetune_2026-09-02.md](./curriculum_hil_finetune_2026-09-02.md)：HIL 数据采集、微调与定性结果；
+- [../docs/EXPERIMENT_PROTOCOL.md](../docs/EXPERIMENT_PROTOCOL.md)：最终评估的预定义成功标准和结论边界；
+- [../docs/NEXT_EXPERIMENTS.md](../docs/NEXT_EXPERIMENTS.md)：已完成测试矩阵的归档说明。
 
-`baseline_corner_approach_test1_020000.md` 冻结了 2026-08-26 训练的只接近
-角点模型。它是已归档的历史 pipeline 诊断，不是实机成功结果，也不再是当前实验门槛。
+历史证据仍可用于回顾问题定位：
 
-`artifacts/corner_following_analyzer_smoke` 是自动测量工具在既有遥操作 episode 上的
-离线链路验证，不是 `M=30` policy 结果。`artifacts/` 已被 Git 忽略；正式摘要应在
-人工真机录制完成、核对叠图后另行整理进本目录。
+- [data_acceptance_2026-08-29.md](./data_acceptance_2026-08-29.md)：训练数据验收；
+- [e1_e3_grasp_failure_diagnosis_2026-08-29.md](./e1_e3_grasp_failure_diagnosis_2026-08-29.md)：E1–E3 训练与真机失败诊断；
+- [e3_m30_screening_2026-08-29.md](./e3_m30_screening_2026-08-29.md)：E3-Orbbec 的 M=30 五布局筛查；
+- [e3_m10_m5_screening_2026-08-29.md](./e3_m10_m5_screening_2026-08-29.md)：M=10/M=5 与控制执行语义诊断。
 
 原始视频、机器人日志和包含个人信息或体积较大的数据不应直接提交到公开仓库，除非已经完成脱敏、许可和存储方案确认。
